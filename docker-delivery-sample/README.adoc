@@ -1,0 +1,48 @@
+= Docker Delivery
+
+An Docker Image with all dependencies needed to build and deploy a Spring Boot application to Kubernetes, with Java, https://gradle.org/[Gradle], https://github.com/GoogleContainerTools/jib[JIB], https://kubernetes.io/docs/reference/kubectl/overview/[Kubectl] and https://skaffold.dev/[Skaffold].
+
+To use this Docker Image it has to be build and pushed into a Docke Registry. 
+After that, you are able to use the image in your CI.
+A sample Gitlab-CI file content is shown below.
+
+[source,yaml]
+----
+image: docker:latest
+services:
+  - docker:dind
+
+variables:
+  # Instruct Testcontainers to use the daemon of DinD.
+  DOCKER_HOST: "tcp://docker:2375"
+  # Improve performance with overlayfs.
+  DOCKER_DRIVER: overlay
+  KUBE_CONFIG_FILE: /etc/deploy/config
+
+before_script:
+  - export GRADLE_USER_HOME=`pwd`/.gradle
+
+stages:
+  - test  
+  - deploy
+
+junit:
+  image: $CI_REGISTRY/YOUR_ACCOUNT/docker-delivery:latest
+  stage: test
+  script: gradle test --no-daemon
+  artifacts:
+    reports:
+      junit: build/test-results/test/TEST-*.xml
+    paths:
+      - build/reports/tests/test/*
+
+skaffold:
+  image: registry.gitlab.com/YOUR_ACCOUNT/docker-delivery:latest
+  stage: deploy
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - mkdir -p /etc/deploy
+    - echo ${KUBE_CONFIG} | base64 -d > ${KUBE_CONFIG_FILE}
+    - export KUBECONFIG=${KUBE_CONFIG_FILE}
+    - skaffold run
+----
