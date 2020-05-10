@@ -60,7 +60,7 @@ Connect your local machine to the K8s Pod.
 kubectl port-forward POD_NAME 8849:8849
 ----
 
-*Connect your JProfiler*
+== Connect your JProfiler
 
 1. Select "Attach to a running JVM".
 
