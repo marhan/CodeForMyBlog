@@ -1,8 +1,17 @@
+:imagesdir: doc/images
+:toc:
+:sectnums:
+:sectanchors:
+:author: hanses.markus@gmail.com
+
 = Docker Delivery
 
 An Docker Image with all dependencies needed to build and deploy a Spring Boot application to Kubernetes, with Java, https://gradle.org/[Gradle], https://github.com/GoogleContainerTools/jib[JIB], https://kubernetes.io/docs/reference/kubectl/overview/[Kubectl] and https://skaffold.dev/[Skaffold].
 
-To use this Docker Image, it has to be build and pushed into a Docker Registry. 
+To use this Docker Image, it has to be build and pushed into a Docker Registry.
+
+image::gitlab-pipeline.png[]
+
 After that, you are able to use the image in your Gitlab-CI Pipeline.
 A sample CI file content is shown below.
 
@@ -23,7 +32,7 @@ before_script:
   - export GRADLE_USER_HOME=`pwd`/.gradle
 
 stages:
-  - test  
+  - test
   - deploy
 
 junit:
@@ -46,3 +55,5 @@ skaffold:
     - export KUBECONFIG=${KUBE_CONFIG_FILE}
     - skaffold run
 ----
+
+

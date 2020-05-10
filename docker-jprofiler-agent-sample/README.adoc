@@ -1,0 +1,56 @@
+:imagesdir: doc/images
+:toc:
+:sectnums:
+:sectanchors:
+:author: hanses.markus@gmail.com
+
+= Docker base image with Java 11 and JProfiler agent
+
+* https://www.ej-technologies.com/resources/jprofiler/help/doc/main/profiling.html[JProfiler agent coonfiguration variants]
+
+
+== Usage 
+
+With https://spring.io/projects/spring-boot[Spring-Boot] project with https://gradle.org/[Gradle] and https://github.com/GoogleContainerTools/jib[Google JIB]
+
+*JIB build.gradle configuration*
+
+[source, groovy]
+----
+jib {
+    from {
+        image = 'registry.gitlab.com/marhan/docker-base-jdk11-jprofiler:latest' // base image with profiling tools
+    }
+    to {
+        image = "registry.gitlab.com/marhan/spring-boot-sample:${project.version}"
+    }
+    container {
+        ports = ['8080','8849']
+        labels = [maintainer: 'Markus Hanses <hanses.markus@gmail.com>']
+        jvmFlags = ['-agentpath:/usr/local/jprofiler11.1.2/bin/linux-x64/libjprofilerti.so=nowait,port=8849']
+    }
+}
+----
+
+*PortForwarding to application container*
+
+Connect your local machine with the Kubernetes Pod.
+
+[source,bash]
+----
+kubectl port-forward spring-boot-sample-deployment-768879f6d-8mxpm 8849:8849
+----
+
+*Connect your JProfiler*
+
+1. Select "Attach to a running JVM".
+
+image::JProfiler_01.png[]
+
+2. Select "Direct connection to" "localhost" and port "8849".
+
+image::JProfiler_02.png[]
+
+3. If all is configured correctly, then the profiling starts.
+
+image::JProfiler_03.png[]
