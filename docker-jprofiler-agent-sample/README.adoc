@@ -4,25 +4,33 @@
 :sectanchors:
 :author: hanses.markus@gmail.com
 
-= Docker base image with Java 11 and JProfiler agent
+= Docker image with JDK11 and JProfiler-11 as agent
 
-* https://www.ej-technologies.com/resources/jprofiler/help/doc/main/profiling.html[JProfiler agent coonfiguration variants]
+== Documentations
 
+* https://www.ej-technologies.com/resources/jprofiler/help/doc/main/profiling.html[JProfiler agent configuration variants]
 
-== Usage 
+== Requirements
 
-With https://spring.io/projects/spring-boot[Spring-Boot] project with https://gradle.org/[Gradle] and https://github.com/GoogleContainerTools/jib[Google JIB]
+This project is for used for a project with the following requirement.
+
+* https://spring.io/projects/spring-boot[Spring-Boot]
+* https://gradle.org/[Gradle]
+* https://github.com/GoogleContainerTools/jib[Google JIB]
+* https://kubernetes.io/[Kubernetes]
 
 *JIB build.gradle configuration*
+
+Add the JIB config below to your Spring-Boot `build.gradle` file.
 
 [source, groovy]
 ----
 jib {
     from {
-        image = 'registry.gitlab.com/marhan/docker-base-jdk11-jprofiler:latest' // base image with profiling tools
+        image = 'docker-base-jdk11-jprofiler:latest' // base image with profiling tools
     }
     to {
-        image = "registry.gitlab.com/marhan/spring-boot-sample:${project.version}"
+        image = "IMAGE_NAME:${project.version}"
     }
     container {
         ports = ['8080','8849']
@@ -32,13 +40,24 @@ jib {
 }
 ----
 
-*PortForwarding to application container*
+== K8s Deployment manifest
 
-Connect your local machine with the Kubernetes Pod.
+Add the port definition to your Deployment manifest to expose the port.
+
+----
+...
+    - name: jprofiler
+      containerPort: 8849
+...
+----
+
+== Port forwarding to the K8s Pod
+
+Connect your local machine to the K8s Pod.
 
 [source,bash]
 ----
-kubectl port-forward spring-boot-sample-deployment-768879f6d-8mxpm 8849:8849
+kubectl port-forward POD_NAME 8849:8849
 ----
 
 *Connect your JProfiler*
